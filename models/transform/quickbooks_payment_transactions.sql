@@ -1,6 +1,11 @@
 --payments debits either undeposited funds or cash and credits accounts receivable.
 --this query creates both of those transactions.
 
+{{
+  config(
+    enabled = var('payments_enabled', true)
+  )
+}}
 
 with payments as (
 
@@ -15,7 +20,7 @@ select
   account_id,
   'debit' as transaction_type,
   'payment' as source,
-  null::bigint as class_id
+  {{ dbt_utils.safe_cast('null', dbt_utils.type_bigint()) }} as class_id
 from payments
 
 union all
@@ -27,7 +32,7 @@ select
   ar.id,
   'credit',
   'payment',
-  null::bigint
+  {{ dbt_utils.safe_cast('null', dbt_utils.type_bigint()) }}
 from payments
   join (select id from {{ref('quickbooks_accounts')}} where type = 'Accounts Receivable') ar
     on 1 = 1

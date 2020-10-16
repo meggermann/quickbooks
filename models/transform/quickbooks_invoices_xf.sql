@@ -1,3 +1,9 @@
+{{
+  config(
+    enabled = var('invoices_enabled', true)
+  )
+}}
+
 with invoices as (
 
     select * from {{ref('quickbooks_invoices')}}

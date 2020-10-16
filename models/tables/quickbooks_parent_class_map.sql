@@ -1,8 +1,16 @@
+{{
+  config(
+    enabled = var('classes_enabled', true)
+  )
+}}
+
 with classes as (
 
   select * from {{ ref('quickbooks_classes') }}
 
-), d1 as (
+),
+
+d1 as (
 
   select
     c1.id as c1_id,
@@ -17,7 +25,9 @@ with classes as (
     left outer join classes c5 on c4.id = c5.parent_class_id
   where c1.parent_class_id is null
 
-), d2 as (
+),
+
+d2 as (
 
   select
     c1_id as top_level_class_id,

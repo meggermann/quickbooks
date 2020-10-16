@@ -2,7 +2,9 @@ with accounts as (
 
   select * from {{ref('quickbooks_accounts_xf')}}
 
-), d1 as (
+),
+
+d1 as (
 
   select
     a1.id as a1_id,
@@ -17,7 +19,9 @@ with accounts as (
     left outer join accounts a5 on a4.id = a5.parent_account_id
   where a1.parent_account_id is null
 
-), d2 as (
+),
+
+d2 as (
 
   select
     a1_id as top_level_account_id,

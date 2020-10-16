@@ -5,31 +5,40 @@ with purchases as (
 
   select * from {{ref('quickbooks_purchases')}}
 
-), purchase_lines as (
+),
+
+purchase_lines as (
 
   select * from {{ref('quickbooks_purchase_lines')}}
 
-), accounts as (
+),
+
+accounts as (
 
   select * from {{ref('quickbooks_accounts_xf')}}
 
-), d1 as (
+),
+
+d1 as (
 
   select
     purchases.id,
-    purchase_lines.amount,
     purchases.txn_date,
-    purchase_lines.account_id as payed_to_acct_id,
     purchases.account_id as payed_from_acct_id,
-    case nvl(purchases.credit, false::bool)
+    case coalesce(purchases.credit, {{ dbt_utils.safe_cast('false', 'bool') }})
       when true then 'debit'
     else 'credit'
     end as payed_from_transaction_type,
-    case nvl(purchases.credit, false::bool)
+    case coalesce(purchases.credit, {{ dbt_utils.safe_cast('false', 'bool') }})
       when true then 'credit'
     else 'debit'
     end as payed_to_transaction_type,
-    purchase_lines.class_id
+    purchase_lines.amount,
+    purchase_lines.account_id as payed_to_acct_id
+    {% if var('classes_enabled', true) %}
+      ,
+      purchase_lines.class_id
+    {% endif %}
   from purchases
     inner join purchase_lines on purchases.id = purchase_lines.purchase_id
 
@@ -41,8 +50,11 @@ select
   amount,
   payed_from_acct_id as account_id,
   payed_from_transaction_type as transaction_type,
-  'purchase' as source,
-  class_id
+  'purchase' as source
+  {% if var('classes_enabled', true) %}
+    ,
+    class_id
+  {% endif %}
 from d1
 
 union all
@@ -53,6 +65,9 @@ select
   amount,
   payed_to_acct_id,
   payed_to_transaction_type,
-  'purchase',
-  class_id
+  'purchase'
+  {% if var('classes_enabled', true) %}
+    ,
+    class_id
+  {% endif %}
 from d1

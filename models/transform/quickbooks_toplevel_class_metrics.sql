@@ -1,3 +1,9 @@
+{{
+  config(
+    enabled = var('classes_enabled', true)
+  )
+}}
+
 with ledger as (
 
   select * from {{ref('quickbooks_general_ledger')}}
@@ -9,7 +15,7 @@ with ledger as (
 )
 
 select
-  txn_date::date as "date",
+  txn_date as `date`,
   top_level_class_id,
   sum(adj_amount) as amount
 from ledger

@@ -23,7 +23,9 @@ select
   txn_date,
   amount,
   account_id,
-  class_id,
+  {% if var('classes_enabled', true) %}
+    class_id,
+  {% endif %}
   transaction_type,
   source,
   amount * multiplier as adj_amount,

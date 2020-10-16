@@ -2,29 +2,37 @@
 --on the invoice line.
 --this query creates both of those transactions.
 
-with invoice_lines as (
 
-  select * from {{ref('quickbooks_invoice_lines')}}
-
-), invoices as (
+with invoices as (
 
   select * from {{ref('quickbooks_invoices')}}
 
-), items as (
+),
+
+invoice_lines as (
+
+  select * from {{ref('quickbooks_invoice_lines')}}
+
+),
+
+items as (
 
   select * from {{ref('quickbooks_items')}}
 
-), d1 as (
+),
+
+d1 as (
 
   select
     invoices.id,
     invoices.txn_date,
-    invoice_lines.amount,
     items.account_id,
-    invoice_lines.class_id
+    invoice_lines.amount,    
+    invoice_lines.class_id    
   from invoices
     inner join invoice_lines on invoices.id = invoice_lines.invoice_id
     inner join items on invoice_lines.item_id = items.id
+  
 
 )
 
@@ -34,8 +42,11 @@ select
   amount,
   account_id,
   'credit' as transaction_type,
-  'invoice' as source,
-  class_id
+  'invoice' as source
+  {% if var('classes_enabled', true) %}
+    ,
+    class_id
+  {% endif %}
 from d1
 
 union all
@@ -46,8 +57,11 @@ select
   amount,
   ar.id,
   'debit' as transaction_type,
-  'invoice',
-  class_id
+  'invoice'
+  {% if var('classes_enabled', true) %}
+    ,
+    class_id
+  {% endif %}
 from d1
   join (select id from {{ref('quickbooks_accounts')}} where type = 'Accounts Receivable') ar
     on 1 = 1

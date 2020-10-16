@@ -2,7 +2,9 @@ with entries as (
 
   select * from {{ref('quickbooks_journal_entries')}}
 
-), lines as (
+),
+
+lines as (
 
   select * from {{ref('quickbooks_journal_lines')}}
 
@@ -14,7 +16,10 @@ select
   lines.amount,
   account_id,
   lower(posting_type) as transaction_type,
-  'journal' as source,
-  lines.class_id
+  'journal' as source
+  {% if var('classes_enabled', true) %}
+    ,
+    lines.class_id
+  {% endif %}
 from entries
   inner join lines on entries.id = lines.entry_id

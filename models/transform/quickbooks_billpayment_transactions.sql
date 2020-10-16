@@ -5,11 +5,15 @@ with bill_payments as (
 
   select * from {{ref('quickbooks_bill_payments')}}
 
-), billpayment_lines as (
+),
+
+billpayment_lines as (
 
   select * from {{ref('quickbooks_billpayment_lines')}}
 
-), d1 as (
+),
+
+d1 as (
 
   select
     bp.id,
@@ -30,8 +34,11 @@ select
   amount,
   payment_account_id as account_id,
   'credit' as transaction_type,
-  'bill payment' as source,
-  null::bigint as class_id
+  'bill payment' as source
+  {% if var('classes_enabled', true) %}
+    ,
+    {{ dbt_utils.safe_cast('null', dbt_utils.type_bigint()) }} as class_id
+  {% endif %}
 from
   d1
 
@@ -43,7 +50,10 @@ select
   amount,
   ap_id,
   'debit',
-  'bill payment',
-  null::bigint
+  'bill payment'
+  {% if var('classes_enabled', true) %}
+    ,
+    {{ dbt_utils.safe_cast('null', dbt_utils.type_bigint()) }}
+  {% endif %}
 from
   d1

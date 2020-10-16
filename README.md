@@ -1,6 +1,4 @@
-# [Deprecated] quickbooks data models
-
-> ⚠️ **WARNING!** This package is no longer maintained. We do not recommend adding it to your dbt project. This code remains public to prevent breaking changes to any existing dbt projects that use this package.
+# quickbooks data models
 
 dbt data models for Quickbooks Online.
 
@@ -13,14 +11,68 @@ The most important model in this repository is `general_ledger`. This model is t
 
 ### installation
 
-- modify your `profiles.yml` to include the following:
+- modify your `packages.yml` to include the following:
 ```YAML
-repositories:
-  - "git@github.com:fishtown-analytics/quickbooks.git"
+packages:
+  - git: https://github.com/arjunbanker/quickbooks.git
+    revision: 0.1.1
 ```
-
 - copy the models within the `base-models` directory into your dbt project and modify them so that they select from the appropriate tables and fields within your environment.
 - run `dbt deps`.
+
+### config
+
+If you're using sources, add this to your source config:
+
+```
+  - name: quickbooks
+    database: your-database-name-here
+    schema: quickbooks
+    loaded_at_field: _sdc_batched_at
+    tables:
+      - name: quickbooks_accounts
+      - name: quickbooks_billpayments
+      - name: quickbooks_bills
+      - name: quickbooks_classes
+      - name: quickbooks_customers
+      - name: quickbooks_deposits
+      - name: quickbooks_invoices
+      - name: quickbooks_items
+      - name: quickbooks_journalentries
+      - name: quickbooks_payments
+      - name: quickbooks_purchases
+      - name: quickbooks_vendors
+    quoting:
+      database: true
+      schema: true
+```
+
+If you're on BigQuery, you're all set. If you are on Redshift, you'll need these additional tables:
+
+```
+bills_line
+billpayments_line
+billpayments_line__linkedtxn
+deposits_line
+deposits_line_linkedtxn
+invoices_lines
+journal_entries_line
+purchases_line
+```
+
+If you don't use classes or other entities, set the appropriate variables to false to your `dbt_project.yml`:
+
+```
+quickbooks:
+    vars:
+      classes_enabled:                        false
+      invoices_enabled:                       false
+      payments_enabled:                       false
+      creditcard_payments_for_bills:          false -- if you don't have any bill payments made by credit card
+```
+
+From the data/ folder:
+- import quickbooks_classifications.csv to your datawarehouse
 
 ### usage
 
@@ -28,4 +80,4 @@ Once installation is completed, `dbt run` will build these models along with the
 
 ### contribution
 
-Additional contributions to this repo are very welcome! Please submit PRs to master. All PRs should only include functionality that is contained within all snowplow deployments; no implementation-specific details should be included.
+Additional contributions to this repo are very welcome! Please submit PRs to master. All PRs should only include functionality that is contained within generic Quickbooks implementations; no implementation-specific details should be included.

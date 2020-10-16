@@ -2,22 +2,36 @@ with accounts as (
 
   select * from {{ref('quickbooks_accounts_xf')}}
 
-), ledger as (
+),
+
+ledger as (
 
   select * from {{ref('quickbooks_ledger_xf')}}
 
-), months as (
+),
+
+months as (
 
   select * from {{ref('quickbooks_months')}}
 
-), monthly_account_totals as (
+),
 
-  select date_trunc('month', txn_date) date_month, account_id,
+monthly_account_totals as (
+
+  select
+    {% if target.type == 'bigquery' %}
+      date_trunc(txn_date, month) as date_month,
+    {% else %}
+      date_trunc('month', txn_date) as date_month,
+    {% endif %}
+    account_id,
     sum(adj_amount) as total
   from ledger
   group by 1, 2
 
-), account_months as (
+),
+
+account_months as (
 
   select id as account_id, date_month
   from accounts

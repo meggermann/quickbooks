@@ -5,25 +5,39 @@ with unioned as (
     txn_date,
     amount,
     account_id,
-    transaction_type::varchar(64),
-    source::varchar(64),
-    class_id
+    {{ dbt_utils.safe_cast('transaction_type', dbt_utils.type_string()) }} as transaction_type,
+    {{ dbt_utils.safe_cast('source', dbt_utils.type_string()) }} as source
+    {% if var('classes_enabled', true) %}
+      ,
+      class_id
+    {% endif %}
   from {{ref('quickbooks_bill_transactions')}}
 
   union all
   select * from {{ref('quickbooks_billpayment_transactions')}}
-  union all
-  select * from {{ref('quickbooks_invoice_transactions')}}
+
+  {% if var('invoices_enabled', true) %}
+    union all
+    select * from {{ref('quickbooks_invoice_transactions')}}
+  {% endif %}
+
   union all
   select * from {{ref('quickbooks_purchase_transactions')}}
+
   union all
   select * from {{ref('quickbooks_journal_transactions')}}
+
   union all
   select * from {{ref('quickbooks_deposit_transactions')}}
-  union all
-  select * from {{ref('quickbooks_payment_transactions')}}
 
-), accounts as (
+  {% if var('payments_enabled', true) %}
+    union all
+    select * from {{ref('quickbooks_payment_transactions')}}
+  {% endif %}
+
+),
+
+accounts as (
 
   select * from {{ref('quickbooks_accounts_xf')}}
 
