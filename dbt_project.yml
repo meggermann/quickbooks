@@ -20,6 +20,9 @@ models:
     base:
       materialized: ephemeral
 
+
+  
+
     vars:
       "base.accounts"                     : "bigquery-291920.qb.quickbooks_accounts"
       "base.bills_line"                   : "bigquery-291920.qb.quickbooks_bills__line"
@@ -43,3 +46,4 @@ models:
       "base.vendors"                      : "bigquery-291920.qb.quickbooks_vendors"
       "level_0_id_field"                  : "_sdc_level_0_id"
       "source_key_id_field"               : "_sdc_source_key_id"
+      creditcard_payments_for_bills:          false
